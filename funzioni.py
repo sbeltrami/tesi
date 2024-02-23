@@ -24,6 +24,14 @@ def compute_anomaly(annual_mean_weighted, annual_mean_weighted_30):
     anomaly = annual_mean_weighted - climatological_mean
     return anomaly 
 
+#funzione che prende un dataset (in °C e già con []), un tempo di inizio e di fine per fare il resample, un indice i e calcola la media di tutti i mesi dei raggruppamenti, partendo dal trimestre di marzo
+def compute_mean_resample_mar(dataset,year_start,year_end,i):
+    dataset_resample = dataset.sel(time=slice(year_start,year_end)).resample(time='Q-MAR').mean(dim='time')
+    resample_mean = dataset_resample.sel(time=dataset_resample['time.month']==((i+1)*3)).mean(dim='time')
+    return resample_mean
+
+#Posso cancellare?
+
 #funzione che calcola il periodo Dicembre, Gennaio, Febbraio dello stesso inverno
 #dataset già convertito in °C e già con []
 def create_djf_dataset(dataset,year_december):   
