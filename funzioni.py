@@ -10,7 +10,7 @@ def compute_dataset_weighted(dataset):
 
 #funzione per il calcolo della media annuale pesata, a partire da un dataset con dati ogni mese
 def compute_annual_mean_weighted(dataset_weighted):
-    annual_mean_weighted = dataset_weighted.mean(dim=("lon", "lat")).resample(time='Y').mean()
+    annual_mean_weighted = dataset_weighted.mean(dim=("lon", "lat")).resample(time='Y').mean(dim='time')
     return annual_mean_weighted
 
 #trasformazione in °C di un dataset in °K. Il dataset in input con []
