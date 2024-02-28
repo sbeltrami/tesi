@@ -10,7 +10,7 @@ def compute_dataset_weighted(dataset):
 
 #funzione per il calcolo della media annuale pesata, a partire da un dataset con dati ogni mese
 def compute_annual_mean_weighted(dataset_weighted):
-    annual_mean_weighted = dataset_weighted.mean(dim=("lon", "lat")).resample(time='Y').mean(dim='time')
+    annual_mean_weighted = dataset_weighted.mean(dim=("lon", "lat")).resample(time='YE').mean(dim='time')
     return annual_mean_weighted
 
 #trasformazione in °C di un dataset in °K. Il dataset in input con []
@@ -26,7 +26,7 @@ def compute_anomaly(annual_mean_weighted, annual_mean_weighted_30):
 
 #funzione che prende un dataset (in °C e già con []), un tempo di inizio e di fine per fare il resample, un indice i e calcola la media di tutti i mesi dei raggruppamenti, partendo dal trimestre di marzo
 def compute_mean_resample_mar(dataset,year_start,year_end,i):
-    dataset_resample = dataset.sel(time=slice(year_start,year_end)).resample(time='Q-MAR').mean(dim='time')
+    dataset_resample = dataset.sel(time=slice(year_start,year_end)).resample(time='QE-MAR').mean(dim='time')
     resample_mean = dataset_resample.sel(time=dataset_resample['time.month']==((i+1)*3)).mean(dim='time')
     return resample_mean
 
