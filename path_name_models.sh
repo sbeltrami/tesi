@@ -24,8 +24,8 @@ for modelpath in $models ; do
 
         #echo $(ls $model)
         #Non prendo il modello CIESM
-        if [ "$model" == "CIESM" ]; then
-            echo 'CIESM model not taken'
+        if [ "$model" == "CIESM" ] || [ "$model" == "FGOALS-f3-L" ] || [ "$model" == "CAMS-CSM1-0" ]; then # CIESM per Value Error monotonic..., FGOALS per stesso valore medio di temperatura pari a 3.1070e+34, CAMS perché ha troppi nan nel Nord Atlantico
+            echo 'CIESM and FGOALS-f3-L models not taken'
         
         else
             printf "%s\n" $model >> name_model.txt #stampo il nome del modello su file
