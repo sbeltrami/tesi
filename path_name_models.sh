@@ -23,24 +23,34 @@ for modelpath in $models ; do
         model=$(basename $modelpath) #nome del modello
 
         #echo $(ls $model)
-        #Non prendo il modello CIESM
-        if [ "$model" == "CIESM" ] || [ "$model" == "FGOALS-f3-L" ] || [ "$model" == "CAMS-CSM1-0" ]; then # CIESM per Value Error monotonic..., FGOALS per stesso valore medio di temperatura pari a 3.1070e+34, CAMS perché ha troppi nan nel Nord Atlantico
+        #Non prendo i modelli CIESM e FGOALS-f3-L 
+        if [ "$model" == "CIESM" ] || [ "$model" == "FGOALS-f3-L" ]; then # CIESM per Value Error index must be monotonic increasing or decreasing, FGOALS per stesso valore medio di temperatura pari a 3.1070e+34
             echo 'CIESM and FGOALS-f3-L models not taken'
         
         else
             printf "%s\n" $model >> name_model.txt #stampo il nome del modello su file
 
             modelfiles=$modelpath/historical/ocean/Omon/r1i1p1f1/tos/tos_Omon_${model}_historical_r1i1p1f1_*.nc
-        
-            #echo $(ls $modelfiles)
-            #if [ -e $modelfiles ]; then #se il percorso esiste
-            if ls $modelfiles 1> /dev/null 2>&1; then #prendo più file .nc nel percorso, non soltanto uno
+
+            #tratto in modo separato il modello CAMS-CSM1-0 perché funziona solo con remapbil
+            if [ "$model" == "CAMS-CSM1-0" ]; then
+                printf "%s\n" $model >> name_ocean_model.txt #stampo su file il nome del modello con modulo oceano
+                cdo -cat $modelfiles ${modeloutput}/${model}.nc #concatena
+                printf "%s\n" ${modeloutput}/${model}.nc >> path_ocean_model.txt #scrivo su file il nome .nc
+                #remapbil
+                cdo remapbil,r180x90 -selname,tos ${modeloutput}/${model}.nc ${modeloutput}/${model}_remapbil.nc
+                #scrivo su file il nome e il percorso
+                printf "%s\n" ${modeloutput}/${model}_remapbil.nc  >> path_remap_ocean_model.txt
+                printf "%s\n" $model >> remapbil_model.txt #scrivo su file il nome .nc
+
+            #tutti gli altri modelli
+            elif ls $modelfiles 1> /dev/null 2>&1; then #prendo più file .nc nel percorso, non soltanto uno
 
                 printf "%s\n" $model >> name_ocean_model.txt #stampo su file il nome del modello con modulo oceano 
 
                 cdo -cat $modelfiles ${modeloutput}/${model}.nc #concatena
 
-             printf "%s\n" ${modeloutput}/${model}.nc >> path_ocean_model.txt #scrivo su file il nome .nc
+                printf "%s\n" ${modeloutput}/${model}.nc >> path_ocean_model.txt #scrivo su file il nome .nc
 
                 #remapcon
                 cdo remapcon,r180x90 -selname,tos ${modeloutput}/${model}.nc ${modeloutput}/${model}_remapcon.nc           
