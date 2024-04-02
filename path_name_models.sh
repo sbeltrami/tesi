@@ -6,7 +6,7 @@ models=$(ls -d $maindir/*/*)
 
 #echo $models
 
-modeloutput=/work/users/guest/sbeltrami
+modeloutput=/work/users/guest/sbeltrami/tos
 
 #per assicurarmi che i file siano vuoti all'inizio
 echo -n > name_model.txt #file in cui scrivo il nome di tutti i modelli
