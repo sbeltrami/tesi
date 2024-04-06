@@ -23,9 +23,9 @@ for modelpath in $models ; do
         model=$(basename $modelpath) #nome del modello
 
         #echo $(ls $model)
-        #Non prendo i modelli CIESM e FGOALS-f3-L 
-        if [ "$model" == "CIESM" ] || [ "$model" == "FGOALS-f3-L" ]; then # CIESM per Value Error index must be monotonic increasing or decreasing, FGOALS per stesso valore medio di temperatura pari a 3.1070e+34
-            echo 'CIESM and FGOALS-f3-L models not taken'
+        #Non prendo 5 modelli
+        if [ "$model" == "CIESM" ] || [ "$model" == "FGOALS-f3-L" ] || [ "$model" == "EC-Earth3-Veg-LR" ] || [ "$model" == "KACE-1-0-G" ] || [ "$model" == "E3SM-1-1" ] || [ "$model" == "E3SM-1-1-ECA" ]; then # CIESM per Value Error index must be monotonic increasing or decreasing, FGOALS per stesso valore medio di temperatura pari a 3.1070e+34
+            echo 'CIESM, FGOALS-f3-L, EC-Earth3-Veg-LR, Kace-1-0-G, E3SM-1-1, E3SM-1-1-ECA models not taken'
         
         else
             printf "%s\n" $model >> atmos_name_model.txt #stampo il nome del modello su file
