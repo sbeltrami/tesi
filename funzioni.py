@@ -48,7 +48,7 @@ def compute_mean_time_season(dataset,seas):
 
 #TOS
 #funzione per il plot dei bias tos
-def plot_bias_tos(n_rows,n_cols,fig_size,number_models,name_models_to_plot,name_dict,val_min,val_max): #number_models è la lista che riporta il numero di modelli in un determinato cluster
+def plot_bias_tos(n_rows,n_cols,fig_size,number_models,name_models_to_plot,name_dict,val_min,val_max,title_plot,title_pdf): #number_models è la lista che riporta il numero di modelli in un determinato cluster
     #Plot dei modelli
     fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
     # Plot dei modelli
@@ -74,10 +74,14 @@ def plot_bias_tos(n_rows,n_cols,fig_size,number_models,name_models_to_plot,name_
             models_index_list = i * n_cols + j
             if models_index_list >= number_models:
                 ax[i, j].axis('off')
-    #fig.tight_layout()
+    
+    # Titolo
+    fig.suptitle(title_plot, fontsize=16, y=1.02)
+
+    fig.savefig(title_pdf, format='pdf')
 
 #plot dei bias dei 2 modelli
-def plot_bias_2_models_tos(fig_size,name_models_to_plot,name_dict):
+def plot_bias_2_models_tos(fig_size,val_min,val_max,name_models_to_plot,name_dict,title_plot,title_pdf):
     #Plot dei modelli
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size)  # Modificato per 2 righe e 1 colonna
 
@@ -85,6 +89,8 @@ def plot_bias_2_models_tos(fig_size,name_models_to_plot,name_dict):
     for i in range(2):  # Solo 2 righe
         model_name = name_models_to_plot[i]  # Usa l'indice i direttamente
         plot_mod = name_dict[model_name]['North Atlantic bias DJF'].plot.pcolormesh(ax=ax[i])
+         # Fisso la scala
+        plot_mod.set_clim(vmin=val_min, vmax=val_max)
         ax[i].set_ylabel('latitude')
         ax[i].set_xlabel('longitude')
             
@@ -97,12 +103,16 @@ def plot_bias_2_models_tos(fig_size,name_models_to_plot,name_dict):
         if i >= len(name_models_to_plot):  # Modificato per usare solo l'indice i
             ax[i].axis('off')
     
-    #fig.tight_layout()
+    
+    # Titolo
+    fig.suptitle(title_plot, fontsize=16, y=1.02)
+
+    fig.savefig(title_pdf, format='pdf')
 
 
 
 #funzione per il plot dei cluster medi tos
-def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict):
+def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict,title_plot,title_pdf,v_min,v_max,fig_size):
     #Inizializzo sum_bias per il calcolo della media
     sum_bias = 0
     #calcolo il valor medio
@@ -112,15 +122,18 @@ def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict):
     #valor medio
     mean_bias = sum_bias / number_models
     #plot del valor medio per il cluster 3
-    plot_mod = mean_bias.plot.pcolormesh()
+    plot_mod = mean_bias.plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max)
     plt.ylabel('latitude')
     plt.xlabel('longitude')
-    plt.tight_layout()
+    # Titolo
+    plt.suptitle(title_plot, fontsize=16, y=1.02)
+
+    plt.savefig(title_pdf, format='pdf')
 
 
 #ATMOS
 #funzione per plot bias atmos
-def plot_bias_atmos(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,dataset_seas_mean): #name_models_to_plot indica la lista in cui sono racchiusi i nomi dei modelli, name_dict è model_atmos, val_min e max sono i valori che fissano la scala, dataset_seas_mean è era_na_seas_mean
+def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_dict,dataset_seas_mean,title_plot,title_pdf): #name_models_to_plot indica la lista in cui sono racchiusi i nomi dei modelli, name_dict è model_atmos, val_min e max sono i valori che fissano la scala, dataset_seas_mean è era_na_seas_mean
     fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
 
     for i in range(n_rows): #ciclo sulle righe
@@ -130,18 +143,17 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,dataset
                 break
             model_name = name_models_to_plot[models_index_list]
             data_array = name_dict[model_name]['atmos North Atlantic bias DJF']
-            plot_mod = ax[i,j].pcolormesh(data_array[0], cmap='coolwarm')            # Fisso la scala
-            #plot_mod.set_clim(vmin=val_min, vmax=val_max)
+            plot_mod = data_array[0].plot.pcolormesh(ax=ax[i, j])
+            # Fisso la scala
+            plot_mod.set_clim(vmin=v_min, vmax=v_max)
 
             #Plot della climatologia dei singoli mdoelli e di ERA5
             data = name_dict[model_name]['atmos North Atlantic bias DJF']     
             data_era = dataset_seas_mean[3]
             #plot
-            ax[i,j].contour(data[0], levels=5, linewidths=0.5, linestyles='dashed', colors='k')
-            ax[i,j].contour(data_era[0], levels=5, linewidths=0.5, linestyles='dashdot', colors='g')
-            
-            # Fisso la scala
-            #plot_mod.set_clim(vmin=-6, vmax=6)
+            data[0].plot.contour(ax=ax[i,j],colors='k')
+            data_era[0].plot.contour(ax=ax[i,j],colors='g')
+            #label assi
             ax[i,j].set_ylabel('lat')
             ax[i,j].set_xlabel('lon')
             
@@ -154,17 +166,16 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,dataset
             models_index_list = i * n_cols + j
             if models_index_list >= len(name_models_to_plot):
                 ax[i, j].axis('off')
-    
-    cbar = fig.colorbar(plot_mod, ax=ax.ravel().tolist(), orientation='vertical')
-    # Per fissare i colori sulla scala di colori
-    #cbar.set_ticks([-6, -4, -2, 0, 2, 4, 6])
 
     # Legenda per linee tratteggiate
-    fig.text(1, 1, ['Linee nere - modelli', 'Linee verdi - ERA5'], horizontalalignment='right', verticalalignment='top', fontsize=10, color='black')
-    #fig.tight_layout()
+    fig.legend(['Linee nere - modelli', 'Linee verdi - ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Titolo
+    fig.suptitle(title_plot, fontsize=16, y=1.02)
+
+    fig.savefig(title_pdf, format='pdf')
 
 #plot del bias per due modelli
-def plot_bias_2_models_atmos(fig_size,name_models_to_plot,name_dict,dataset_seas_mean):
+def plot_bias_2_models_atmos(fig_size,v_min,v_max,name_models_to_plot,name_dict,dataset_seas_mean,title_plot,title_pdf):
     #Plot dei modelli
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size)  # Modificato per 2 righe e 1 colonna
 
@@ -172,15 +183,17 @@ def plot_bias_2_models_atmos(fig_size,name_models_to_plot,name_dict,dataset_seas
     for i in range(2):  # Solo 2 righe
         model_name = name_models_to_plot[i]  # Usa l'indice i direttamente
         data_array = name_dict[model_name]['atmos North Atlantic bias DJF']
-        plot_mod = ax[i].pcolormesh(data_array[0],cmap='coolwarm')
+        plot_mod = data_array[0].plot.pcolormesh(ax=ax[i])
+         # Fisso la scala
+        plot_mod.set_clim(vmin=v_min, vmax=v_max)
 
         #Plot della climatologia dei singoli mdoelli e di ERA5
         data = name_dict[model_name]['atmos North Atlantic seasonal mean']        
         data_era = dataset_seas_mean[3]
         #plot
-        ax[i].contour(data[0], levels=5, linewidths=0.5, linestyles='dashed', colors='k')
-        ax[i].contour(data_era[0], levels=5, linewidths=0.5, linestyles='dashdot', colors='g')
-
+        data[0].plot.contour(ax=ax[i],colors='k')
+        data_era[0].plot.contour(ax=ax[i],colors='g')
+        #label assi
         ax[i].set_ylabel('latitude')
         ax[i].set_xlabel('longitude')        
         # Aggiungi il nome del modello in alto a destra
@@ -189,18 +202,17 @@ def plot_bias_2_models_atmos(fig_size,name_models_to_plot,name_dict,dataset_seas
     # Rimuovi i quadrati non utilizzati
     for i in range(2):
         if i >= len(name_models_to_plot):  # Modificato per usare solo l'indice i
-            ax[i].axis('off')
-
-    cbar = fig.colorbar(plot_mod, ax=ax.ravel().tolist(), orientation='vertical')
-    # Per fissare i colori sulla scala di colori
-    #cbar.set_ticks([-6, -4, -2, 0, 2, 4, 6])       
+            ax[i].axis('off')    
     # Legenda per linee tratteggiate
-    fig.text(1, 1, ['Linee nere - modelli', 'Linee verdi - ERA5'], horizontalalignment='right', verticalalignment='top', fontsize=10, color='black')
-    #fig.tight_layout()
+    fig.legend(['Linee nere - modelli', 'Linee verdi - ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Titolo
+    fig.suptitle(title_plot, fontsize=16, y=1.02)
+
+    fig.savefig(title_pdf, format='pdf')
 
 
 #plot dei cluster medi atmos
-def plot_mean_cluster_atmos(name_models_to_plot,name_dict): #name_models_to_plot indica la lista in cui sono racchiusi i nomi dei modelli da plottare, name_dict è o models_atmos
+def plot_mean_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf,v_min,v_max,fig_size): #name_models_to_plot indica la lista in cui sono racchiusi i nomi dei modelli da plottare, name_dict è o models_atmos
     #Inizializzo sum_bias per il calcolo della media
     sum_bias = 0
     #calcolo il valor medio
@@ -210,7 +222,10 @@ def plot_mean_cluster_atmos(name_models_to_plot,name_dict): #name_models_to_plot
     #valor medio
     mean_bias = sum_bias / len(name_models_to_plot)
     #plot del valor medio per il cluster 3
-    plot_mod = mean_bias[0].plot.pcolormesh()
+    plot_mod = mean_bias[0].plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max)
     plt.ylabel('latitude')
     plt.xlabel('longitude')
-    plt.tight_layout()
+    # Titolo
+    plt.suptitle(title_plot, fontsize=16, y=1.02)
+
+    plt.savefig(title_pdf, format='pdf')
