@@ -17,6 +17,7 @@ echo -n > path_remap_zonal_mean_model.txt #nome dei file con remap
 echo -n > zonal_mean_remapcon_model.txt #nome modelli con remapcon
 echo -n > zonal_mean_remapbil_model.txt #nome modelli con remapbil
 echo -n > zonal_mean_remapnn_model.txt #nome modelli con remapnn
+echo -n > path_zonavg_model.txt #percorso dei modelli *_zonal_mean.nc
 
 for modelpath in $models ; do
 
@@ -44,24 +45,33 @@ for modelpath in $models ; do
                 #remapcon
                 cdo remapcon,r180x90 -selname,ua ${modeloutput}/${model}.nc ${modeloutput}/${model}_remapcon.nc           
                 if [ $? -eq 0 ]; then #se il comando è stato eseguito correttamente allora scrivo su file                    
-                    cdo zonavg -sellonlatbox,-60,0,0,90 ${modeloutput}/${model}_remapcon.nc ${modeloutput}/${model}_zonal_mean.nc #calcolo la media zonale dell'emisfero nord tra -60W e 0 
+                    cdo sellonlatbox,-60,0,0,90 ${modeloutput}/${model}_remapcon.nc ${modeloutput}/${model}_box.nc #Creo il box dell'emisfero nord tra -60W e 0
+                    cdo zonavg ${modeloutput}/${model}_box.nc  ${modeloutput}/${model}_zonal_mean.nc #calcolo la media zonale dell'emisfero nord tra -60W e 0 
+                    rm ${modeloutput}/${model}_box.nc #rimuovo il box
                     printf "%s\n" ${modeloutput}/${model}_remapcon.nc >> path_remap_zonal_mean_model.txt
+                    printf "%s\n" ${modeloutput}/${model}_zonal_mean.nc >> path_zonavg_model.txt
                     printf "%s\n" $model >> zonal_mean_remapcon_model.txt #scrivo su file il nome .nc
                 else #se il comando precedente non è stato eseguito con successo
                     rm ${modeloutput}/${model}_remapcon.nc #rimuovo quanto creato perché non è andato a buon fine il processo
                     #remapbil
                     cdo remapbil,r180x90 -selname,ua ${modeloutput}/${model}.nc ${modeloutput}/${model}_remapbil.nc
-                    if [ $? -eq 0 ]; then 
-                        cdo fldmean -sellonlatbox,-60,0,0,90 ${modeloutput}/${model}_remapbil.nc ${modeloutput}/${model}_zonal_mean.nc #calcolo la media zonale dell'emisfero nord tra -60W e 0 
+                    if [ $? -eq 0 ]; then                     
+                        cdo sellonlatbox,-60,0,0,90 ${modeloutput}/${model}_remapbil.nc ${modeloutput}/${model}_box.nc #Creo il box dell'emisfero nord tra -60W e 0
+                        cdo zonavg ${modeloutput}/${model}_box.nc  ${modeloutput}/${model}_zonal_mean.nc #calcolo la media zonale dell'emisfero nord tra -60W e 0 
+                        rm ${modeloutput}/${model}_box.nc #rimuovo il box
                         printf "%s\n" ${modeloutput}/${model}_remapbil.nc  >> path_remap_zonal_mean_model.txt
+                        printf "%s\n" ${modeloutput}/${model}_zonal_mean.nc >> path_zonavg_model.txt
                         printf "%s\n" $model >> zonal_mean_remapbil_model.txt #scrivo su file il nome .nc
                     else #se il comando precedente non è stato eseguito con successo
                         rm ${modeloutput}/${model}_remapbil.nc
                         #remapnn
                         cdo remapnn,r180x90 -selname,ua ${modeloutput}/${model}.nc ${modeloutput}/${model}_remapnn.nc
-                        if [ $? -eq 0 ]; then  
-                            cdo fldmean -sellonlatbox,-60,0,0,90 ${modeloutput}/${model}_remapnn.nc ${modeloutput}/${model}_zonal_mean.nc #calcolo la media zonale dell'emisfero nord tra -60W e 0 
+                        if [ $? -eq 0 ]; then                     
+                            cdo sellonlatbox,-60,0,0,90 ${modeloutput}/${model}_remapnn.nc ${modeloutput}/${model}_box.nc #Creo il box dell'emisfero nord tra -60W e 0
+                            cdo zonavg ${modeloutput}/${model}_box.nc  ${modeloutput}/${model}_zonal_mean.nc #calcolo la media zonale dell'emisfero nord tra -60W e 0 
+                            rm ${modeloutput}/${model}_box.nc #rimuovo il box
                             printf "%s\n" ${modeloutput}/${model}_remapnn.nc  >> path_remap_zonal_mean_model.txt
+                            printf "%s\n" ${modeloutput}/${model}_zonal_mean.nc >> path_zonavg_model.txt
                             printf "%s\n" $model >> zonal_mean_remapnn_model.txt #scrivo su file il nome .nc
                         else
                             rm ${modeloutput}/${model}_remapnn.nc
