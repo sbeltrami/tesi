@@ -148,7 +148,7 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_
             plot_mod.set_clim(vmin=v_min, vmax=v_max)
 
             #Plot della climatologia dei singoli mdoelli e di ERA5
-            data = name_dict[model_name]['atmos North Atlantic bias DJF']     
+            data = name_dict[model_name]['atmos North Atlantic seasonal mean']     
             data_era = dataset_seas_mean[3]
             #plot
             data[0].plot.contour(ax=ax[i,j],colors='k')
