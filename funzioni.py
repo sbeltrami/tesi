@@ -51,7 +51,7 @@ def compute_mean_time_season(dataset,seas):
 def plot_bias_tos(n_rows,n_cols,fig_size,number_models,name_models_to_plot,name_dict,val_min,val_max,title_plot,title_pdf): #number_models è la lista che riporta il numero di modelli in un determinato cluster
     #Plot dei modelli
     fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
-    fig.subplots_adjust(hspace=0.5)  # Aggiungo spazi verticali tra le subplots
+    fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
     # Plot dei modelli
     for i in range(n_rows): #ciclo sulle righe 
         for j in range(n_cols): #ciclo sulle colonne 
@@ -132,7 +132,7 @@ def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict,title_plot
 #funzione per plot bias atmos
 def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_dict,dataset_seas_mean,title_plot,title_pdf): #name_models_to_plot indica la lista in cui sono racchiusi i nomi dei modelli, name_dict è model_atmos, val_min e max sono i valori che fissano la scala, dataset_seas_mean è era_na_seas_mean
     fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
-    fig.subplots_adjust(hspace=0.5)  # Aggiungo spazi verticali tra le subplots
+    fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
 
     for i in range(n_rows): #ciclo sulle righe
         for j in range(n_cols): #ciclo sulle colonne
@@ -147,7 +147,7 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_
 
             #Plot della climatologia dei singoli mdoelli e di ERA5
             data = name_dict[model_name]['atmos North Atlantic seasonal mean']     
-            data_era = dataset_seas_mean[3]
+            data_era = dataset_seas_mean[4]
             #plot
             data[0].plot.contour(ax=ax[i,j],colors='k')
             data_era[0].plot.contour(ax=ax[i,j],colors='g')
@@ -185,7 +185,7 @@ def plot_bias_2_models_atmos(fig_size,v_min,v_max,name_models_to_plot,name_dict,
 
         #Plot della climatologia dei singoli mdoelli e di ERA5
         data = name_dict[model_name]['atmos North Atlantic seasonal mean']        
-        data_era = dataset_seas_mean[3]
+        data_era = dataset_seas_mean[4]
         #plot
         data[0].plot.contour(ax=ax[i],colors='k')
         data_era[0].plot.contour(ax=ax[i],colors='g')
@@ -244,7 +244,7 @@ def plot_std_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf): 
 def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,v_min,v_max,title_plot,title_pdf):
     #plot medie annuali dei modelli
     fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
-    fig.subplots_adjust(hspace=0.5)  # Aggiungo spazi verticali tra le subplots
+    fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
     # Plot dei modelli
     for i in range(n_rows): #ciclo sulle righe
         for j in range(n_cols): #ciclo sulle colonne
@@ -252,7 +252,7 @@ def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,v_min,v_max
             if models_index_list == len(name_models_to_plot):
                 break
             model_name = name_models_to_plot[models_index_list]
-            data_array = name_dict[model_name]['zonavg mean 1982 - 2014']
+            data_array = name_dict[model_name]['zonavg bias DJF']
             plot_mod = data_array.plot(ax=ax[i, j])
             # Fisso la scala
             plot_mod.set_clim(vmin=v_min, vmax=v_max)
@@ -278,11 +278,11 @@ def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,v_min,v_max
 def plot_zonavg_2_cluster(fig_size,name_models_to_plot,name_dict,v_min,v_max,title_plot,title_pdf):
     #plot medie annuali dei modelli
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size)  # Modificato per 2 righe e 1 colonna
-    fig.subplots_adjust(hspace=0.5)  # Aggiungo spazi verticali tra le subplots
+    fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
     # Plot dei modelli
     for i in range(2): #ciclo sulle colonne
         model_name = name_models_to_plot[i]
-        data_array = name_dict[model_name]['zonavg mean 1982 - 2014']
+        data_array = name_dict[model_name]['zonavg bias DJF']
         plot_mod = data_array.plot(ax=ax[i])
         # Fisso la scala
         plot_mod.set_clim(vmin=v_min, vmax=v_max)
@@ -311,7 +311,9 @@ def plot_mean_cluster_zonavg(number_models,name_models_to_plot,name_dict,title_p
     #calcolo il valor medio
     for i in range(number_models):
         model_name = name_models_to_plot[i]
-        sum_zonavg = sum_zonavg + name_dict[model_name]['zonavg mean 1982 - 2014']
+        zonavg = name_dict[model_name]['zonavg bias DJF']
+        zonavg = zonavg.assign_coords({"plev" : zonavg.plev.round()}) #arrotondo in modo tale che i livelli di pressione siano gli stessi per ogni modello
+        sum_zonavg = sum_zonavg + zonavg
     #valor medio
     mean_zonavg = sum_zonavg / number_models
     #plot del valor medio
