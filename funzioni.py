@@ -128,7 +128,7 @@ def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict,title_plot
     plt.savefig(title_pdf, format='pdf')
 
 #plot della standard deviation dei cluster di tos
-def plot_std_cluster_tos(name_models_to_plot,name_dict,title_plot,title_pdf): #name_dict è models_tos
+def plot_std_cluster_tos(name_models_to_plot,name_dict,v_min,v_max,title_plot,title_pdf): #name_dict è models_tos
     dataset = [] #Inizializzo una lista
     for i in range(len(name_models_to_plot)): #Vado ad inserire all'interno di dataset tutti gli elementi 'North Atlantic bias DJF' della j-esima lista, dove j = 0,...,4
         dataset.append(name_dict[name_models_to_plot[i]]['North Atlantic bias DJF'])
@@ -136,7 +136,7 @@ def plot_std_cluster_tos(name_models_to_plot,name_dict,title_plot,title_pdf): #n
     combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
     std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
     # Plot
-    std_dev.plot(cmap='RdBu')
+    std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max)
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
 
@@ -240,7 +240,7 @@ def plot_mean_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf,v
     plt.savefig(title_pdf, format='pdf')
 
 #plot della standard deviation dei cluster di atmos
-def plot_std_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf): #name_dict è models_atmos
+def plot_std_cluster_atmos(name_models_to_plot,name_dict,v_min,v_max,title_plot,title_pdf): #name_dict è models_atmos
     dataset = [] #Inizializzo una lista
     for i in range(len(name_models_to_plot)): #Vado ad inserire all'interno di dataset tutti gli elementi 'atmos North Atlantic bias DJF' della j-esima lista, dove j = 0,...,4
         dataset.append(name_dict[name_models_to_plot[i]]['atmos North Atlantic bias DJF'])
@@ -248,12 +248,13 @@ def plot_std_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf): 
     combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
     std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
     # Plot
-    std_dev.plot(cmap='RdBu')
+    std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max)
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
 
     plt.savefig(title_pdf, format='pdf')
 
+#ZONAVG
 #plot medie zonali
 def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,dataset_seas_mean,v_min,v_max,title_plot,title_pdf):
     #plot medie annuali dei modelli
@@ -356,7 +357,7 @@ def plot_mean_cluster_zonavg(number_models,name_models_to_plot,name_dict,title_p
     plt.savefig(title_pdf, format='pdf')
 
 #plot della standard deviation dei cluster di zonavg
-def plot_std_cluster_zonavg(name_models_to_plot,name_dict,title_plot,title_pdf): #name_dict è models_zonavg
+def plot_std_cluster_zonavg(name_models_to_plot,name_dict,v_min,v_max,title_plot,title_pdf): #name_dict è models_zonavg
     dataset = [] #Inizializzo una lista
     for i in range(len(name_models_to_plot)): #Vado ad inserire all'interno di dataset tutti gli elementi 'zonavg bias DJF' della j-esima lista, dove j = 0,...,4
         dataset.append(name_dict[name_models_to_plot[i]]['zonavg bias DJF'])
@@ -364,7 +365,7 @@ def plot_std_cluster_zonavg(name_models_to_plot,name_dict,title_plot,title_pdf):
     combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
     std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
     # Plot
-    std_dev.plot(cmap='RdBu')
+    std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max)
     plt.gca().invert_yaxis()
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
