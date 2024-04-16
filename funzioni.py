@@ -119,7 +119,7 @@ def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict,title_plot
     #valor medio
     mean_bias = sum_bias / number_models
     #plot del valor medio per il cluster 3
-    plot_mod = mean_bias.plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='coolwarm')
+    plot_mod = mean_bias.plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='RdBu')
     plt.ylabel('latitude')
     plt.xlabel('longitude')
     # Titolo
@@ -127,6 +127,20 @@ def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict,title_plot
 
     plt.savefig(title_pdf, format='pdf')
 
+#plot della standard deviation dei cluster di tos
+def plot_std_cluster_tos(name_models_to_plot,name_dict,title_plot,title_pdf): #name_dict è models_tos
+    dataset = [] #Inizializzo una lista
+    for i in range(len(name_models_to_plot)): #Vado ad inserire all'interno di dataset tutti gli elementi 'North Atlantic bias DJF' della j-esima lista, dove j = 0,...,4
+        dataset.append(name_dict[name_models_to_plot[i]]['North Atlantic bias DJF'])
+
+    combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
+    std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
+    # Plot
+    std_dev.plot(cmap='RdBu')
+    # Titolo
+    plt.suptitle(title_plot, fontsize=16, y=1.02)
+
+    plt.savefig(title_pdf, format='pdf')
 
 #ATMOS
 #funzione per plot bias atmos
@@ -146,7 +160,7 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_
             plot_mod.set_clim(vmin=v_min, vmax=v_max)
 
             #Plot della climatologia dei singoli mdoelli e di ERA5
-            data = name_dict[model_name]['atmos North Atlantic seasonal mean']     
+            data = name_dict[model_name]['atmos North Atlantic seasonal mean DJF']     
             data_era = dataset_seas_mean[4]
             #plot
             data[0].plot.contour(ax=ax[i,j],colors='k')
@@ -164,7 +178,7 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_
                 ax[i, j].axis('off')
 
     # Legenda per linee tratteggiate
-    fig.legend(['Linee nere - modelli', 'Linee verdi - ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
 
@@ -184,7 +198,7 @@ def plot_bias_2_models_atmos(fig_size,v_min,v_max,name_models_to_plot,name_dict,
         plot_mod.set_clim(vmin=v_min, vmax=v_max)
 
         #Plot della climatologia dei singoli mdoelli e di ERA5
-        data = name_dict[model_name]['atmos North Atlantic seasonal mean']        
+        data = name_dict[model_name]['atmos North Atlantic seasonal mean DJF']        
         data_era = dataset_seas_mean[4]
         #plot
         data[0].plot.contour(ax=ax[i],colors='k')
@@ -199,7 +213,7 @@ def plot_bias_2_models_atmos(fig_size,v_min,v_max,name_models_to_plot,name_dict,
         if i >= len(name_models_to_plot):  # Modificato per usare solo l'indice i
             ax[i].axis('off')    
     # Legenda per linee tratteggiate
-    fig.legend(['Linee nere - modelli', 'Linee verdi - ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
 
@@ -217,7 +231,7 @@ def plot_mean_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf,v
     #valor medio
     mean_bias = sum_bias / len(name_models_to_plot)
     #plot del valor medio per il cluster 3
-    plot_mod = mean_bias[0].plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='coolwarm')
+    plot_mod = mean_bias[0].plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='RdBu')
     plt.ylabel('latitude')
     plt.xlabel('longitude')
     # Titolo
@@ -234,14 +248,14 @@ def plot_std_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf): 
     combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
     std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
     # Plot
-    std_dev.plot(cmap='coolwarm')
+    std_dev.plot(cmap='RdBu')
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
 
     plt.savefig(title_pdf, format='pdf')
 
 #plot medie zonali
-def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,v_min,v_max,title_plot,title_pdf):
+def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,dataset_seas_mean,v_min,v_max,title_plot,title_pdf):
     #plot medie annuali dei modelli
     fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
     fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
@@ -256,6 +270,12 @@ def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,v_min,v_max
             plot_mod = data_array.plot(ax=ax[i, j])
             # Fisso la scala
             plot_mod.set_clim(vmin=v_min, vmax=v_max)
+            #Plot della climatologia dei singoli mdoelli e di ERA5
+            data = name_dict[model_name]['zonavg seasonal mean DJF']     
+            data_era = dataset_seas_mean[4]
+            #plot
+            data.sel(lon=0).plot.contour(ax=ax[i,j],colors='k') #in modo t.c l'array sia 2d su plev e lat
+            data_era.sel(lon=0).plot.contour(ax=ax[i,j],colors='g')
             ax[i,j].set_ylabel('plev')
             ax[i,j].set_xlabel('lat')
             ax[i,j].set_title(model_name) #nome di ogni singolo modello sul plot
@@ -268,14 +288,16 @@ def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,v_min,v_max
             models_index_list = i * n_cols + j
             if models_index_list >= len(model_name):
                 ax[i, j].axis('off')
-
+    
+    # Legenda per linee tratteggiate
+    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
 
     fig.savefig(title_pdf, format='pdf')
 
 #plot medie zonali per due cluster
-def plot_zonavg_2_cluster(fig_size,name_models_to_plot,name_dict,v_min,v_max,title_plot,title_pdf):
+def plot_zonavg_2_cluster(fig_size,name_models_to_plot,name_dict,dataset_seas_mean,v_min,v_max,title_plot,title_pdf):
     #plot medie annuali dei modelli
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size)  # Modificato per 2 righe e 1 colonna
     fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
@@ -285,7 +307,13 @@ def plot_zonavg_2_cluster(fig_size,name_models_to_plot,name_dict,v_min,v_max,tit
         data_array = name_dict[model_name]['zonavg bias DJF']
         plot_mod = data_array.plot(ax=ax[i])
         # Fisso la scala
-        plot_mod.set_clim(vmin=v_min, vmax=v_max)
+        plot_mod.set_clim(vmin=v_min, vmax=v_max)        
+        #Plot della climatologia dei singoli mdoelli e di ERA5
+        data = name_dict[model_name]['zonavg seasonal mean DJF']        
+        data_era = dataset_seas_mean[4]
+        #plot
+        data.sel(lon=0).plot.contour(ax=ax[i],colors='k')
+        data_era.sel(lon=0).plot.contour(ax=ax[i],colors='g')
         ax[i].set_ylabel('plev')
         ax[i].set_xlabel('lat')
         ax[i].set_title(model_name) #nome di ogni singolo modello sul plot
@@ -296,10 +324,11 @@ def plot_zonavg_2_cluster(fig_size,name_models_to_plot,name_dict,v_min,v_max,tit
     for i in range(2):
         if i >= len(name_models_to_plot):  # Modificato per usare solo l'indice i
             ax[i].axis('off')  
-
+    
+    # Legenda per linee tratteggiate
+    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
-
     fig.savefig(title_pdf, format='pdf')
 
 #plot dei cluster medi per medie zonali
@@ -317,9 +346,25 @@ def plot_mean_cluster_zonavg(number_models,name_models_to_plot,name_dict,title_p
     #valor medio
     mean_zonavg = sum_zonavg / number_models
     #plot del valor medio
-    mean_zonavg.plot(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='coolwarm')
+    mean_zonavg.plot(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='RdBu')
     plt.ylabel('latitude')
     plt.xlabel('longitude')
+    plt.gca().invert_yaxis()
+    # Titolo
+    plt.suptitle(title_plot, fontsize=16, y=1.02)
+
+    plt.savefig(title_pdf, format='pdf')
+
+#plot della standard deviation dei cluster di zonavg
+def plot_std_cluster_zonavg(name_models_to_plot,name_dict,title_plot,title_pdf): #name_dict è models_zonavg
+    dataset = [] #Inizializzo una lista
+    for i in range(len(name_models_to_plot)): #Vado ad inserire all'interno di dataset tutti gli elementi 'zonavg bias DJF' della j-esima lista, dove j = 0,...,4
+        dataset.append(name_dict[name_models_to_plot[i]]['zonavg bias DJF'])
+
+    combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
+    std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
+    # Plot
+    std_dev.plot(cmap='RdBu')
     plt.gca().invert_yaxis()
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
