@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
+import cartopy.crs as ccrs
 #funzione che crea un vettore di pesi per poli/equatore e ritorna un dataset pesato
 #in input ci deve essere il dataset con []
 def compute_dataset_weighted(dataset):
@@ -50,7 +51,7 @@ def compute_mean_time_season(dataset,seas):
 #funzione per il plot dei bias tos
 def plot_bias_tos(n_rows,n_cols,fig_size,number_models,name_models_to_plot,name_dict,val_min,val_max,title_plot,title_pdf): #number_models è la lista che riporta il numero di modelli in un determinato cluster
     #Plot dei modelli
-    fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
+    fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size, subplot_kw={"projection": ccrs.PlateCarree()})
     fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
     # Plot dei modelli
     for i in range(n_rows): #ciclo sulle righe 
@@ -59,10 +60,11 @@ def plot_bias_tos(n_rows,n_cols,fig_size,number_models,name_models_to_plot,name_
             if models_index_list == number_models:
                 break
             model_name = name_models_to_plot[models_index_list]
-            plot_mod = name_dict[model_name]['North Atlantic bias DJF'].plot.pcolormesh(ax=ax[i, j])
+            plot_mod = name_dict[model_name]['North Atlantic bias DJF'].plot.pcolormesh(ax=ax[i, j],cmap='seismic')
             # Fisso la scala
             plot_mod.set_clim(vmin=val_min, vmax=val_max)
-            #ax[i,j].legend(loc='upper right')
+            #plot di cartopy
+            ax[i,j].coastlines() 
             ax[i,j].set_ylabel('latitude')
             ax[i,j].set_xlabel('longitude')
             ax[i,j].set_title(model_name) #nome di ogni singolo modello sul plot
@@ -82,14 +84,16 @@ def plot_bias_tos(n_rows,n_cols,fig_size,number_models,name_models_to_plot,name_
 #plot dei bias dei 2 modelli
 def plot_bias_2_models_tos(fig_size,val_min,val_max,name_models_to_plot,name_dict,title_plot,title_pdf):
     #Plot dei modelli
-    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size)  # Modificato per 2 righe e 1 colonna
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size, subplot_kw={"projection": ccrs.PlateCarree()})  # Modificato per 2 righe e 1 colonna
 
     # Plot dei modelli
     for i in range(2):  # Solo 2 righe
         model_name = name_models_to_plot[i]  # Usa l'indice i direttamente
-        plot_mod = name_dict[model_name]['North Atlantic bias DJF'].plot.pcolormesh(ax=ax[i])
+        plot_mod = name_dict[model_name]['North Atlantic bias DJF'].plot.pcolormesh(ax=ax[i],cmap='seismic')
          # Fisso la scala
         plot_mod.set_clim(vmin=val_min, vmax=val_max)
+        #plot di cartopy
+        ax[i].coastlines() 
         ax[i].set_ylabel('latitude')
         ax[i].set_xlabel('longitude')
         ax[i].set_title(model_name) #nome di ogni singolo modello sul plot
@@ -119,7 +123,9 @@ def plot_mean_cluster_tos(number_models,name_models_to_plot,name_dict,title_plot
     #valor medio
     mean_bias = sum_bias / number_models
     #plot del valor medio per il cluster 3
-    plot_mod = mean_bias.plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='RdBu')
+    plot_mod = mean_bias.plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='seismic',
+    subplot_kws={"projection":ccrs.PlateCarree()})  #trasformazione cartografica = lonxlat
+    plt.gca().coastlines() #gca = get current axis
     plt.ylabel('latitude')
     plt.xlabel('longitude')
     # Titolo
@@ -136,7 +142,11 @@ def plot_std_cluster_tos(name_models_to_plot,name_dict,v_min,v_max,title_plot,ti
     combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
     std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
     # Plot
-    std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max)
+    std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max,
+    subplot_kws={"projection":ccrs.PlateCarree()})  #trasformazione cartografica = lonxlat
+    plt.ylabel('latitude')
+    plt.xlabel('longitude')
+    plt.gca().coastlines() #gca = get current axis
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
 
@@ -145,7 +155,7 @@ def plot_std_cluster_tos(name_models_to_plot,name_dict,v_min,v_max,title_plot,ti
 #ATMOS
 #funzione per plot bias atmos
 def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_dict,dataset_seas_mean,title_plot,title_pdf): #name_models_to_plot indica la lista in cui sono racchiusi i nomi dei modelli, name_dict è model_atmos, val_min e max sono i valori che fissano la scala, dataset_seas_mean è era_na_seas_mean
-    fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size)
+    fig, ax = plt.subplots(nrows=n_rows,ncols=n_cols,figsize=fig_size,subplot_kw={"projection": ccrs.PlateCarree()})
     fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
 
     for i in range(n_rows): #ciclo sulle righe
@@ -154,17 +164,18 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_
             if models_index_list == len(name_models_to_plot):
                 break
             model_name = name_models_to_plot[models_index_list]
-            data_array = name_dict[model_name]['atmos North Atlantic bias DJF']
-            plot_mod = data_array[0].plot.pcolormesh(ax=ax[i, j])
+            data_array = name_dict[model_name]['atmos North Atlantic bias DJF']    
+            plot_mod = data_array[0].plot.pcolormesh(ax=ax[i,j],cmap='seismic')
             # Fisso la scala
             plot_mod.set_clim(vmin=v_min, vmax=v_max)
-
             #Plot della climatologia dei singoli mdoelli e di ERA5
             data = name_dict[model_name]['atmos North Atlantic seasonal mean DJF']     
             data_era = dataset_seas_mean[4]
             #plot
             data[0].plot.contour(ax=ax[i,j],colors='k')
             data_era[0].plot.contour(ax=ax[i,j],colors='g')
+            #plot di cartopy
+            ax[i,j].coastlines()  
             #label assi
             ax[i,j].set_ylabel('lat')
             ax[i,j].set_xlabel('lon')
@@ -182,19 +193,17 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
 
-    fig.savefig(title_pdf, format='pdf')
-
 #plot del bias per due modelli
 def plot_bias_2_models_atmos(fig_size,v_min,v_max,name_models_to_plot,name_dict,dataset_seas_mean,title_plot,title_pdf):
     #Plot dei modelli
-    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size)  # Modificato per 2 righe e 1 colonna
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=fig_size, subplot_kw={"projection": ccrs.PlateCarree()})  # Modificato per 2 righe e 1 colonna
 
     # Plot dei modelli
     for i in range(2):  # Solo 2 colonne
         model_name = name_models_to_plot[i]  # Usa l'indice i direttamente
         data_array = name_dict[model_name]['atmos North Atlantic bias DJF']
-        plot_mod = data_array[0].plot.pcolormesh(ax=ax[i])
-         # Fisso la scala
+        plot_mod = data_array[0].plot.pcolormesh(ax=ax[i],cmap='seismic')
+        # Fisso la scala
         plot_mod.set_clim(vmin=v_min, vmax=v_max)
 
         #Plot della climatologia dei singoli mdoelli e di ERA5
@@ -203,6 +212,8 @@ def plot_bias_2_models_atmos(fig_size,v_min,v_max,name_models_to_plot,name_dict,
         #plot
         data[0].plot.contour(ax=ax[i],colors='k')
         data_era[0].plot.contour(ax=ax[i],colors='g')
+        #plot di cartopy
+        ax[i].coastlines() 
         #label assi
         ax[i].set_ylabel('latitude')
         ax[i].set_xlabel('longitude')
@@ -231,7 +242,9 @@ def plot_mean_cluster_atmos(name_models_to_plot,name_dict,title_plot,title_pdf,v
     #valor medio
     mean_bias = sum_bias / len(name_models_to_plot)
     #plot del valor medio per il cluster 3
-    plot_mod = mean_bias[0].plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='RdBu')
+    plot_mod = mean_bias[0].plot.pcolormesh(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='seismic',
+    subplot_kws={"projection":ccrs.PlateCarree()})  #trasformazione cartografica = lonxlat
+    plt.gca().coastlines() #gca = get current axis
     plt.ylabel('latitude')
     plt.xlabel('longitude')
     # Titolo
@@ -248,7 +261,11 @@ def plot_std_cluster_atmos(name_models_to_plot,name_dict,v_min,v_max,title_plot,
     combined_data = xr.concat(dataset, dim='time') #concateno tutti gli elementi all'interno di dataset, lungo la dimensione time
     std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
     # Plot
-    std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max)
+    std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max,
+    subplot_kws={"projection":ccrs.PlateCarree()})  #trasformazione cartografica = lonxlat    
+    plt.ylabel('latitude')
+    plt.xlabel('longitude')
+    plt.gca().coastlines() #gca = get current axis)
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
 
@@ -268,7 +285,7 @@ def plot_zonavg(n_rows,n_cols,fig_size,name_models_to_plot,name_dict,dataset_sea
                 break
             model_name = name_models_to_plot[models_index_list]
             data_array = name_dict[model_name]['zonavg bias DJF']
-            plot_mod = data_array.plot(ax=ax[i, j])
+            plot_mod = data_array.plot(ax=ax[i, j],cmap='seismic')
             # Fisso la scala
             plot_mod.set_clim(vmin=v_min, vmax=v_max)
             #Plot della climatologia dei singoli mdoelli e di ERA5
@@ -306,7 +323,7 @@ def plot_zonavg_2_cluster(fig_size,name_models_to_plot,name_dict,dataset_seas_me
     for i in range(2): #ciclo sulle colonne
         model_name = name_models_to_plot[i]
         data_array = name_dict[model_name]['zonavg bias DJF']
-        plot_mod = data_array.plot(ax=ax[i])
+        plot_mod = data_array.plot(ax=ax[i],cmap='seismic')
         # Fisso la scala
         plot_mod.set_clim(vmin=v_min, vmax=v_max)        
         #Plot della climatologia dei singoli mdoelli e di ERA5
@@ -347,9 +364,9 @@ def plot_mean_cluster_zonavg(number_models,name_models_to_plot,name_dict,title_p
     #valor medio
     mean_zonavg = sum_zonavg / number_models
     #plot del valor medio
-    mean_zonavg.plot(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='RdBu')
-    plt.ylabel('latitude')
-    plt.xlabel('longitude')
+    mean_zonavg.plot(figsize=fig_size,vmin=v_min, vmax=v_max,cmap='seismic')
+    plt.ylabel('plev')
+    plt.xlabel('latitude')
     plt.gca().invert_yaxis()
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
@@ -366,6 +383,8 @@ def plot_std_cluster_zonavg(name_models_to_plot,name_dict,v_min,v_max,title_plot
     std_dev = combined_data.std(dim='time') #calcolo la deviazione standard lungo la dimensione time
     # Plot
     std_dev.plot(cmap='Reds',vmin=v_min,vmax=v_max)
+    plt.ylabel('plev')
+    plt.xlabel('latitude')
     plt.gca().invert_yaxis()
     # Titolo
     plt.suptitle(title_plot, fontsize=16, y=1.02)
