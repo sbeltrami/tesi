@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 import cartopy.crs as ccrs
+import random
 #funzione che crea un vettore di pesi per poli/equatore e ritorna un dataset pesato
 #in input ci deve essere il dataset con []
 def compute_dataset_weighted(dataset):
@@ -454,7 +455,7 @@ def bs_compute_array_mean_std_5th_95th(n_iterations,sample_mean):
 #Funzione che calcola la media, la std, il 5th e 95th percentile della distribuzione bootstrap
 def plot_bs_5th_95th_mean_std(name_list,name_dict,array_mean,array_std,array_5th_percentile,array_95th_percentile):
 
-    fig, ax = plt.subplots(nrows=int(len(name_list)/2), ncols=int(len(name_list)/2), figsize=(20,8), subplot_kw={"projection": ccrs.PlateCarree()})
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(20,8), subplot_kw={"projection": ccrs.PlateCarree()})
     fig.subplots_adjust(hspace=0.5, wspace=0.5)  # Aggiungo spazi verticali tra le subplots
 
     #valori estremanti di lon-lat
@@ -484,8 +485,8 @@ def plot_bs_5th_95th_mean_std(name_list,name_dict,array_mean,array_std,array_5th
     fig.colorbar(ax[1,1].imshow(array_std, cmap='Reds'), ax=ax[1,1])
 
     #invert y axis and set ticks on x-y axes
-    for i in range(int(len(name_list)/2)):
-        for j in range(int(len(name_list)/2)):
+    for i in range(2):
+        for j in range(2):
             #ax[i,j].invert_yaxis()
             #ax[i,j].set_xlim(mean_bias[0].lon.min(),mean_bias[0].lon.max())
             #ax[i,j].set_ylim(mean_bias[0].lat.min(),mean_bias[0].lat.max())
@@ -521,7 +522,7 @@ def bs_compute_matrix10(name_list,name_dict,array_5th_percentile,array_95th_perc
     return matrix10
 
 #funzione per il plot del cluster medio + i puntini di significatività
-def plot_bs_mean_cluster_matrix10(name_list,name_dict,fig_size,v_min,v_max,matrix10):#funzione che plotta il cluster medio + i pti significativamente differenti dalla distribuzione bootstrap
+def plot_bs_mean_cluster_matrix10(name_list,name_dict,fig_size,v_min,v_max,matrix10,title_plot):#funzione che plotta il cluster medio + i pti significativamente differenti dalla distribuzione bootstrap
     #Inizializzo sum_bias per il calcolo della media
     sum_bias = 0
     #calcolo il valor medio
@@ -547,5 +548,5 @@ def plot_bs_mean_cluster_matrix10(name_list,name_dict,fig_size,v_min,v_max,matri
     #barra di colori
     fig.colorbar(plot_mod,ax=ax)
     # Titolo
-    fig.suptitle('Cluster 0 medio, with originals models (4)', fontsize=16, y=1.02)
+    fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.show()
