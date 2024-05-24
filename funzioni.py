@@ -739,12 +739,8 @@ def plot_bs_95cl_mean_std(name_list,name_dict,array_mean,array_std,array_2th_per
     ax[1,1].set_title('Std of bootstrap distribution')
     fig.colorbar(ax[1,1].imshow(array_std, cmap='Reds'), ax=ax[1,1])
 
-    #invert y axis and set ticks on x-y axes
     for i in range(2):
         for j in range(2):
-            #ax[i,j].invert_yaxis()
-            #ax[i,j].set_xlim(mean_bias[0].lon.min(),mean_bias[0].lon.max())
-            #ax[i,j].set_ylim(mean_bias[0].lat.min(),mean_bias[0].lat.max())
             ax[i,j].set_xlabel('lon')
             ax[i,j].set_ylabel('lat')
             ax[i,j].set_extent([min_lon, max_lon, min_lat, max_lat], crs=ccrs.PlateCarree())
@@ -974,90 +970,81 @@ def plot_bs_diff_cluster_zonmean(diff,title_plot,v_min,v_max,fig_size,matrix10):
 # 1.
 #funzione che per ogni modello ritorna il valore di theta
 def compute_theta(name_dict,name_model): #name_dict = models_ta, name_model = 'TaiESM1',...
-    #model = name_dict[name_model]['ta bias DJF'] #bias di temperatura, di dimensioni (plev,lat,lon)
-    model = name_dict[name_model]['ta seasonal mean DJF'] # dimensioni (plev,lat,lon)
+    model = name_dict[name_model]['ta North Atlantic box'] # dimensioni (time,plev,lat,lon)
     #Costanti
     R_cp = 0.286 # R / cp
     p0 = 1.013e5 #1000 hPa
-    #Inizializzo theta come un array che ha dimensioni = (plev,lat,lon)
-    theta = np.zeros((len(model.plev.values), len(model.lat.values), len(model.lon.values)))
+    #Inizializzo theta come un xarray che ha dimensioni = (time,plev,lat,lon)
+    theta = xr.DataArray(np.empty(model['ta'].shape), dims=model['ta'].dims, coords=model['ta'].coords)
     #Calcolo theta
     for i in range(len(model.plev.values)): #ciclo sui plev, cioè in verticale
-        for j in range(len(model.lat.values)): #ciclo sulle latitudini
-            for k in range(len(model.lon.values)): #ciclo sulle longitudini
-                p = model.plev[i].values #livello i-esimo di pressione
-                theta[i,j,k] = model[i,j,k] * ((p0 / p) ** R_cp) #lon=0
-    return theta     
+        p = model.plev[i].values #livello i-esimo di pressione
+        theta[:,i,:,:] = model['ta'][:,i,:,:] * ((p0 / p) ** R_cp) #lon=0
+    return theta 
 #2
-#funzione che calcola la derivata di theta e ua rispetto a p
-def compute_derivative(theta_plev,theta_lat,theta_lon,name_variable,name_ua_plev): # name_variable = theta or ua, name_variable = nome della variabile di cui si vuole calcolare la derivata, name_ua_plev = nome della variabile di models_ua che ha livelli --> models_ua[name]['ua seasonal mean DJF'].plev
+#funzione che calcola la derivata di theta e ua rispetto a z
+def compute_derivative(name_variable,temperature): # name_variable = theta or ua, name_variable = nome della variabile di cui si vuole calcolare la derivata (dizionario completo), temperature=dizionario in cui è riportata la temperatura (no seas mean)
+    #Inizializzo derivata della variabile come un xarray
+    derivative = xr.DataArray(np.empty(name_variable[:,1:-1,:,:].shape), dims=name_variable[:,1:-1,:,:].dims, coords=name_variable[:,1:-1,:,:].coords)
     #La derivata la devo fare rispetto a z, non rispetto a p --> ricavo z
-    z = np.zeros(theta_plev) #array di lunghezza pari al numero di pressioni
+    z = np.zeros(len(name_variable.plev)) #array di lunghezza pari al numero di pressioni
     p0 = 1.013e5 #pressione a 1000hPa
-    rho_0 = 1.29 #densità aria in [kg/m^3] alla pressione p0
-    g = 9.81 #accelerazione di gravità (m/s^2)
-    for i in range(theta_plev):
-        z[i] = -(p0/(rho_0*g))*(math.log(name_ua_plev[i].values/p0))
-    #Inizializzazione di derivative che ha dimensioni (plev,lat,lon)
-    derivative = np.zeros((theta_plev-2,theta_lat,theta_lon)) #len(name_variable.plev)-2 perché con la derivata perdo i valori estremi 1000hPa e 200hPa. Questo perché der(925hPa) = (var(1000hPa) - var(850hPa))/(1000hPa - 850hPa)
-    for i in range(theta_plev-2): #ciclo sui plev - 2
-        for j in range(theta_lat): #ciclo su lat
-            for k in range(theta_lon): #ciclo su lon
-                #derivative[i,j,k] = (name_variable[i,j,k] - name_variable[i+2,j,k]) / (name_ua_plev[i].values - name_ua_plev[i+2].values)
-                derivative[i,j,k] = (name_variable[i,j,k] - name_variable[i+2,j,k]) / (z[i] - z[i+2])
+    #rho_0 = 1.29 #densità aria in [kg/m^3] alla pressione p0
+    #g = 9.81 #accelerazione di gravità (m/s^2)
+    for i in range(len(name_variable.plev)):
+        H = 29.3*temperature[:,i,:,:].mean() #altezza scala, utilizzo il campo di temperatura assoluta e poi lo medio rispetto al tempo, alla latitudine e alla longitudine --> rimane un campo di temperatura dipendente esclusivamente da plev
+        #z[i] = -(p0/(rho_0*g))*(math.log(name_variable.plev[i].values/p0))
+        z[i] = -H*(math.log(name_variable.plev[i].values/p0))
+    for i in range(len(name_variable.plev)-2): #ciclo sui plev - 2
+        derivative[:,i,:,:] = (name_variable[:,i,:,:] - name_variable[:,i+2,:,:]) / (z[i] - z[i+2])
     return derivative
 #3.
 #Funzione che calcola la frequenza di Brunt–Väisälä
-def compute_frequency(theta_plev,theta_lat,theta_lon,theta,derivative_theta):
+def compute_frequency(theta,derivative_theta): #dove theta e derivative_theta sono i due dizionari models_ta[name]['potential... oppure theta derivative DJF]
     g = 9.81 #accelerazione di gravità (m/s^2)
-    #Inizializzo N
-    N_quadro = np.zeros(((theta_plev-2), theta_lat,theta_lon)) # N^2
-    N = np.zeros((theta_plev-2,theta_lat,theta_lon))
-    for i in range(theta_plev-2): #ciclo su plev
-        for j in range(theta_lat): #ciclo su lat
-            for k in range(theta_lon): #ciclo su lon
-                N_quadro[i,j,k] = (g/abs(theta[i+1,j,k]))*abs(derivative_theta[i,j,k]) #theta[i+1,...] perché il livello plev=1000hPa non c'è nella derivata di theta
-                N[i,j,k] = np.sqrt(N_quadro[i,j,k])
+    #Inizializzo N^2 e N come xarray
+    N = xr.DataArray(np.empty(theta[:,1:-1,:,:].shape), dims=theta[:,1:-1,:,:].dims, coords=theta[:,1:-1,:,:].coords)
+    N_quadro = xr.DataArray(np.empty(theta[:,1:-1,:,:].shape), dims=theta[:,1:-1,:,:].dims, coords=theta[:,1:-1,:,:].coords)
+    for i in range(len(theta.plev)-2): #ciclo su plev
+        N_quadro[:,i,:,:] = (g/abs(theta[:,i+1,:,:]))*abs(derivative_theta[:,i,:,:]) #theta[i+1,...] perché il livello plev=1000hPa non c'è nella derivata di theta
+        N[:,i,:,:] = np.where(N_quadro[:,i,:,:] < 0, np.nan,np.sqrt(N_quadro[:,i,:,:])) #gli elementi negativi vengono messi pari a nan (vuol dire che dtheta/dz < 0 e quindi profilo instabile), degli altri si calcola la radice quadrata
     return N
 #4.
 #Funzione che calcola il parametro di Coriolis f = 2*omega*sin(phi)
-def compute_coriolis_parameter(theta_lat,name_ua_lat): #f come un array 1d di dimensioni pari al numero di lat.values, perché f è dipendente solo dalla lat phi
+def compute_coriolis_parameter(name_variable): #f come un array 1d di dimensioni pari al numero di lat.values, perché f è dipendente solo dalla lat phi
     omega = 7.2921e-5 # rad/s
-    #inizializzo f
-    f = np.zeros(theta_lat)
-    lat_rad = np.deg2rad(name_ua_lat.lat.values) #converto in radianti i valori di latitudine
+    #inizializzo f come un xarray
+    f = xr.DataArray(np.empty(name_variable[0,0,:,0].shape), dims=name_variable[0,0,:,0].dims, coords=name_variable[0,0,:,0].coords)
+    lat_rad = np.deg2rad(name_variable.lat.values) #converto in radianti i valori di latitudine
     # Calcoloil seno delle latitudini
     seno = np.sin(lat_rad)
-    for i in range(theta_lat): #ciclo su lat
-        f[i] = 2 * omega * seno[i]
+    f[:] = 2 * omega * seno
     return f
 
 #5.
 #Funzione che calcola Eady Growth Rate
-def compute_egr(theta_plev,theta_lat,theta_lon,f,derivative_u,N):
+def compute_egr(f,derivative_u,N):
     c = 0.3068
     #Inizializzo sigma
-    sigma = np.zeros((theta_plev-2,theta_lat,theta_lon))
+    sigma = xr.DataArray(np.empty(N[:,:,:,:].shape), dims=N[:,:,:,:].dims, coords=N[:,:,:,:].coords)
     #Calcolo EGR
-    for i in range(theta_plev-2): #ciclo sui plev - 2
-        for j in range(theta_lat): #ciclo su lat
-            for k in range(theta_lon): #ciclo su lon
-                sigma[i,j,k] = (c * f[j] * abs(derivative_u[i,j,k])) / N[i,j,k]
+    for i in range(len(N.plev)): #ciclo sui plev
+        for j in range(len(N.lat)): #ciclo su lat
+            sigma[:,i,j,:] = (c * f[j] * abs(derivative_u[:,i,j,:])) / N[:,i,j,:]
     return sigma
 
 # 1.
-#funzione che per ogni modello ritorna il valore di theta
-def compute_theta_era(era_ta_seas_mean): 
-    dataset = era_ta_seas_mean[4]
+#funzione che per ogni modello ritorna il valore di theta per DJF
+def compute_theta_era(dataset): 
     #Costanti
     R_cp = 0.286 # R / cp
     p0 = 1.013e5 #1000 hPa
     #Inizializzo theta come un array che ha dimensioni = (plev,lat,lon)
-    theta = np.zeros((len(dataset.plev.values), len(dataset.lat.values), len(dataset.lon.values)))
+    theta = xr.DataArray(np.empty(dataset[:,:,:,:].shape), dims=dataset[:,:,:,:].dims, coords=dataset[:,:,:,:].coords)
     #Calcolo theta
     for i in range(len(dataset.plev.values)): #ciclo sui plev, cioè in verticale
-        for j in range(len(dataset.lat.values)): #ciclo sulle latitudini
-            for k in range(len(dataset.lon.values)): #ciclo sulle longitudini
-                p = dataset.plev[i].values #livello i-esimo di pressione
-                theta[i,j,k] = dataset[i,j,k] * ((p0 / p) ** R_cp) #lon=0
+        p = dataset.plev[i].values #livello i-esimo di pressione
+        theta[:,i,:,:] = dataset[:,i,:,:] * ((p0 / p) ** R_cp) #lon=0
     return theta  
+
+#BOOTSTRAP
