@@ -4,6 +4,7 @@ import xarray as xr
 import cartopy.crs as ccrs
 import random
 import math
+from matplotlib.lines import Line2D
 #funzione che crea un vettore di pesi per poli/equatore e ritorna un dataset pesato
 #in input ci deve essere il dataset con []
 def compute_dataset_weighted(dataset):
@@ -55,8 +56,9 @@ def compute_mean(name_list,name_dict):
     #calcolo il valor medio
     for i in range(len(name_list)):
         model_name = name_list[i]
-        sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic bias DJF']
-    #valor medio
+        #sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic bias DJF']
+        sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic seasonal mean DJF'][0] # metto [0] in modo tale da avere un vettore (lat,lon), senza plev, perché tanto è fissato    
+        #valor medio
     mean_bias_cluster0 = sum_bias / len(name_list)
     return mean_bias_cluster0
 def compute_mean_zonmean(name_list,name_dict):
@@ -64,7 +66,8 @@ def compute_mean_zonmean(name_list,name_dict):
     #calcolo il valor medio
     for i in range(len(name_list)):
         model_name = name_list[i]
-        sum_bias = sum_bias + name_dict[model_name]['zonmean bias DJF']
+        sum_bias = sum_bias + name_dict[model_name]['zonmean seasonal mean DJF']
+        #sum_bias = sum_bias + name_dict[model_name]['zonmean bias DJF']
     #valor medio
     mean_bias_cluster0 = sum_bias / len(name_list)
     return mean_bias_cluster0
@@ -301,8 +304,11 @@ def plot_bias_atmos(n_rows,n_cols,fig_size,v_min,v_max,name_models_to_plot,name_
                 ax[i, j].axis('off')
     
     fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)
-    # Legenda per linee tratteggiate
-    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology') 
+    black_line = Line2D([0],[0], color='black',lw=2,label='Model climatology')    
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line,black_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
@@ -341,8 +347,11 @@ def plot_bias_2_models_atmos(fig_size,v_min,v_max,name_models_to_plot,name_dict,
             ax[i].axis('off') 
 
     fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)
-    # Legenda per linee tratteggiate
-    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology') 
+    black_line = Line2D([0],[0], color='black',lw=2,label='Model climatology')    
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line,black_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
@@ -366,8 +375,10 @@ def plot_mean_cluster_atmos(name_models_to_plot, name_dict, dataset_seas_mean, t
     ax.set_yticks(np.arange(mean_bias[0].lat.min(),mean_bias[0].lat.max(), 10))
     ax.set_ylabel('latitude')
     ax.set_xlabel('longitude')
-    # Legenda per linee verdi
-    fig.legend(['Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology')   
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)
     fig.colorbar(plot_mod)
     fig.suptitle(title_plot, fontsize=16, y=1.02)
 
@@ -421,13 +432,15 @@ def plot_5_mean_cluster_atmos(list_5_clusters, dataset_seas_mean, fig_size, name
         # Valori assi            
         ax[k, l].set_xticks(np.arange(mean_bias_atmos[0].lon.min(), mean_bias_atmos[0].lon.max(), 20))
         ax[k, l].set_yticks(np.arange(mean_bias_atmos[0].lat.min(), mean_bias_atmos[0].lat.max(), 10))
-        ax[k, l].set_xlabel('longitude')
-        ax[k, l].set_ylabel('latitude')
+        ax[k, l].set_xlabel('longitude(deg)')
+        ax[k, l].set_ylabel('latitude(deg)')
         ax[k, l].set_title(f'Cluster {j}', fontsize=16, y=1.02)
     # Rimuovo il plot vuoto ax[1, 2]
     ax[1, 2].axis('off')    
-    # Legenda per linee verdi
-    fig.legend(['Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))    
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology')  
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)  
     # Barra del colore
     fig.colorbar(plot_mod, ax=ax.ravel().tolist(), orientation='horizontal', shrink=0.6, aspect=40)    
     # Titolo
@@ -505,9 +518,11 @@ def plot_zonmean(n_rows, n_cols, fig_size, name_models_to_plot, name_dict, datas
             if models_index_list >= len(name_models_to_plot):
                 ax[i, j].axis('off')
 
-    # Legenda per linee tratteggiate
-    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
-    # Titolo
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology') 
+    black_line = Line2D([0],[0], color='black',lw=2,label='Model climatology')    
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line,black_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)# Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)
     fig.savefig(title_pdf, format='pdf')
@@ -543,8 +558,11 @@ def plot_zonmean_2_cluster(fig_size,name_models_to_plot,name_dict,dataset_seas_m
             ax[i].axis('off')  
     
     fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)
-    # Legenda per linee tratteggiate
-    fig.legend(['Linee nere - climatologia modello', 'Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology') 
+    black_line = Line2D([0],[0], color='black',lw=2,label='Model climatology')    
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line,black_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')   
@@ -575,8 +593,10 @@ def plot_mean_cluster_zonmean(number_models,name_models_to_plot,name_dict,datase
     ax.invert_yaxis()
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
-    # Legenda per linee verdi
-    fig.legend(['Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology')   
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)
     fig.savefig(title_pdf, format='pdf')
 
 #plot della standard deviation dei cluster di zonmean
@@ -630,8 +650,10 @@ def plot_5_mean_cluster_zonmean(list_5_clusters, dataset_seas_mean, fig_size, na
 
     # Rimuovo il plot vuoto ax[1, 2]
     ax[1, 2].axis('off')    
-    # Legenda per linee verdi
-    fig.legend(['Linee verdi - climatologia ERA5'], loc='upper right', bbox_to_anchor=(1.2, 1))
+    # Creazione di un oggetto Line2D per la legenda
+    green_line = Line2D([0], [0], color='green', lw=2, label='ERA5 climatology')     
+    # Aggiungo la legenda al plot
+    fig.legend(handles=[green_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)
     # Barra del colore
     fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)          
     # Titolo
@@ -677,11 +699,16 @@ def bs_sample_mean(n_iterations,name_dict,name_list):
     list_name_models_atmos = list(name_dict.keys())
     sample_rand = [] #inizializzazione lista di modelli presi in modo random, in numero n_iterations
     sample_mean = [] #inizializzazione di una lista in cui vado ad inserire la media di ogni sample, preso con l'estrazione random
+    #Bisogna allineare plev,lat,lon
+    for name in name_list:
+        name_dict[name]['atmos North Atlantic seasonal mean DJF'] = name_dict[name]['atmos North Atlantic seasonal mean DJF'].assign_coords({"plev" : name_dict[name]['atmos North Atlantic seasonal mean DJF'].plev.round()})
+    #Estrazione in modo random dei modelli
     for n in range(n_iterations): #itero n_iterations volte
         sample_rand = random.sample(range(len(name_dict)), len(name_list)) #lista = estraggo 4 numeri random da 0 a 36, che sono il numero associato ad ogni modello
-        sample_sum = 0 #inizializzazione ad ogni iterazione di sample_sum
+        sample_sum = 0 #inizializzazione ad ogni iterazione di sample_sum        
         for i in range(len(name_list)): #ciclo sui 4 modelli presi
-            sample_sum += name_dict[list_name_models_atmos[sample_rand[i]]]['atmos North Atlantic bias DJF']
+            #sample_sum += name_dict[list_name_models_atmos[sample_rand[i]]]['atmos North Atlantic bias DJF']
+            sample_sum = sample_sum + name_dict[list_name_models_atmos[sample_rand[i]]]['atmos North Atlantic seasonal mean DJF'][0] #metto [0] per non considerare plev = 850hPa e per evitare problemi
         sample_mean.append(sample_sum/len(sample_rand)) #calcolo il valore medio per ogni cluster
     return sample_mean
 
@@ -697,7 +724,7 @@ def bs_compute_array_mean_std_95cl(n_iterations,sample_mean): #95% confidence le
     for i in range(len(sample_mean[0].lat)): #ciclo sulle latitudini
         for j in range(len(sample_mean[0].lon)): #ciclo sulle longitudini
             for n in range(n_iterations): #ciclo sulle iterazioni
-                cell_grid_iteration[n] = sample_mean[n][0][i][j] #n-esima iterazione, plev fissato, i-esimo elemento lat, primo elemento lon
+                cell_grid_iteration[n] = sample_mean[n][i][j] #n-esima iterazione, i-esimo elemento lat, primo elemento lon (N.B.: i plev li ho già tolti nella funzione precedente!)
             #Fuori dalle iterazioni perché ragiono sulla distribuzione, ottenuta dopo tutte le iterazioni
             # media e la deviazione standard
             array_mean[i,j] = np.mean(cell_grid_iteration)
@@ -757,7 +784,8 @@ def bs_compute_matrix10(name_list,name_dict,array_2th_percentile,array_97th_perc
     #calcolo il valor medio
     for i in range(len(name_list)):
         model_name = name_list[i]
-        sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic bias DJF']
+        #sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic bias DJF']
+        sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic seasonal mean DJF']
     #valor medio
     mean_bias = sum_bias / len(name_list)
     #mean_bias[0], array_2.5th_percentile, array_97.5th_percentile --> matrici (30,78)
@@ -779,7 +807,8 @@ def plot_bs_mean_cluster_matrix10(name_list,name_dict,fig_size,v_min,v_max,matri
     #calcolo il valor medio
     for i in range(len(name_list)):
         model_name = name_list[i]
-        sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic bias DJF']
+        #sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic bias DJF']
+        sum_bias = sum_bias + name_dict[model_name]['atmos North Atlantic seasonal mean DJF']
     #valor medio
     mean_bias = sum_bias / len(name_list)
     fig, ax = plt.subplots(figsize=fig_size, subplot_kw={"projection": ccrs.PlateCarree()})
@@ -805,14 +834,14 @@ def plot_bs_mean_cluster_matrix10(name_list,name_dict,fig_size,v_min,v_max,matri
 #plot di diff, cioè la differenza tra il cluster medio e la media della distribuzione bootstrap --> in più ci metto anche i punti di significatività
 def plot_bs_diff_cluster(diff,title_plot,v_min,v_max,fig_size,matrix10): #name_models_to_plot indica la lista in cui sono racchiusi i nomi dei modelli da plottare, name_dict è o models_atmos
     fig, ax = plt.subplots(figsize=fig_size,subplot_kw={"projection": ccrs.PlateCarree()}) #trasformazione cartografica = lonxlat   
-    plot_mod = ax.pcolormesh(diff[0].lon, diff[0].lat, diff[0],vmin=v_min, vmax=v_max,cmap='seismic') 
+    plot_mod = ax.pcolormesh(diff.lon, diff.lat, diff,vmin=v_min, vmax=v_max,cmap='seismic') 
     coords = np.where(matrix10 == 1) #array di valori di longitudini e latitudini in cui matrix10 = 1
     # Plot dei punti solo dove matrix10 è uguale a 1
-    ax.plot(diff[0].lon[coords[1]], diff[0].lat[coords[0]], marker='o', color='black', markersize=2, linestyle='None', transform=ccrs.PlateCarree())
+    ax.plot(diff.lon[coords[1]], diff.lat[coords[0]], marker='o', color='black', markersize=2, linestyle='None', transform=ccrs.PlateCarree())
     #imposto lat-lon sugli assi
     #valori assi            
-    ax.set_xticks(np.arange(diff[0].lon.min(),diff[0].lon.max(), 20))
-    ax.set_yticks(np.arange(diff[0].lat.min(),diff[0].lat.max(), 10))
+    ax.set_xticks(np.arange(diff.lon.min(),diff.lon.max(), 20))
+    ax.set_yticks(np.arange(diff.lat.min(),diff.lat.max(), 10))
     ax.coastlines() #gca = get current axis
     ax.set_ylabel('latitude')
     ax.set_xlabel('longitude')
@@ -820,7 +849,7 @@ def plot_bs_diff_cluster(diff,title_plot,v_min,v_max,fig_size,matrix10): #name_m
     fig.colorbar(plot_mod)
     fig.suptitle(title_plot, fontsize=16, y=1.02)
 
-#zonmean
+#ZONMEAN
 #funzione che estrae in modo random un numero di modelli e ne calcola il valor medio di bias DJF --> per un singolo cluster
 def bs_sample_mean_zonmean(n_iterations,name_dict,name_list): 
     #creazione di una lista con il nome dei modelli
@@ -831,7 +860,8 @@ def bs_sample_mean_zonmean(n_iterations,name_dict,name_list):
         sample_rand = random.sample(range(len(name_dict)), len(name_list)) #lista = estraggo 4 numeri random da 0 a 36, che sono il numero associato ad ogni modello
         sample_sum = 0 #inizializzazione ad ogni iterazione di sample_sum
         for i in range(len(name_list)): #ciclo sui 4 modelli presi
-            sample_sum = sample_sum + name_dict[list_name_models_atmos[sample_rand[i]]]['zonmean bias DJF']
+            #sample_sum = sample_sum + name_dict[list_name_models_atmos[sample_rand[i]]]['zonmean bias DJF']
+            sample_sum = sample_sum + name_dict[list_name_models_atmos[sample_rand[i]]]['zonmean seasonal mean DJF']
         sample_mean.append(sample_sum/len(sample_rand)) #calcolo il valore medio per ogni cluster
     return sample_mean
 
@@ -905,7 +935,8 @@ def bs_compute_matrix10_zonmean(name_list,name_dict,array_2th_percentile,array_9
     #calcolo il valor medio
     for i in range(len(name_list)):
         model_name = name_list[i]
-        zonmean = name_dict[model_name]['zonmean bias DJF']
+        #zonmean = name_dict[model_name]['zonmean bias DJF']
+        zonmean = name_dict[model_name]['zonmean seasonal mean DJF']
         zonmean = zonmean.assign_coords({"plev" : zonmean.plev.round()}) #arrotondo in modo tale che i livelli di pressione siano gli stessi per ogni modello
         sum_bias = sum_bias + zonmean
     #valor medio
@@ -928,7 +959,8 @@ def plot_bs_mean_cluster_matrix10_zonmean(name_list,name_dict,fig_size,v_min,v_m
     #calcolo il valor medio
     for i in range(len(name_list)):
         model_name = name_list[i]
-        zonmean = name_dict[model_name]['zonmean bias DJF']
+        #zonmean = name_dict[model_name]['zonmean bias DJF']
+        zonmean = name_dict[model_name]['zonmean seasonal mean DJF']
         zonmean = zonmean.assign_coords({"plev" : zonmean.plev.round()}) #arrotondo in modo tale che i livelli di pressione siano gli stessi per ogni modello
         sum_bias = sum_bias + zonmean
     #valor medio
