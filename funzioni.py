@@ -217,14 +217,14 @@ def plot_5_mean_cluster_tos(list_5_clusters,fig_size,name_dict,v_min,v_max,title
         #valori assi            
         ax[k,l].set_xticks(np.arange(mean_bias_tos.lon.min(),mean_bias_tos.lon.max(), 20))
         ax[k,l].set_yticks(np.arange(mean_bias_tos.lat.min(),mean_bias_tos.lat.max(), 10))
-        ax[k,l].set_ylabel('latitude')
-        ax[k,l].set_xlabel('longitude')
+        ax[k,l].set_ylabel('latitude(deg)')
+        ax[k,l].set_xlabel('longitude(deg)')
         ax[k,l].set_title(f'Cluster {j}', fontsize=16, y=1.02)
 
     #rimuovo il plot vuoto ax[2,2]
     ax[1, 2].axis('off')
     # Titolo
-    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)
+    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40).set_label('SST(°C)')
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
 
@@ -250,15 +250,15 @@ def plot_5_std_cluster_tos(list_5_clusters,name_dict,fig_size,v_min,v_max,title_
         #valori assi            
         ax[k,l].set_xticks(np.arange(std_dev.lon.min(),std_dev.lon.max(), 20))
         ax[k,l].set_yticks(np.arange(std_dev.lat.min(),std_dev.lat.max(), 10))
-        ax[k,l].set_ylabel('latitude')
-        ax[k,l].set_xlabel('longitude')
+        ax[k,l].set_ylabel('latitude(deg)')
+        ax[k,l].set_xlabel('longitude(deg)')
         ax[k,l].coastlines() #gca = get current axis        
         ax[k,l].set_title(f'Cluster {j}', fontsize=16, y=1.02)
 
     ax[1,1].axis('off')
     ax[1,2].axis('off')
     # Titolo
-    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)
+    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40).set_label('SST(°C)')
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
 
@@ -442,7 +442,7 @@ def plot_5_mean_cluster_atmos(list_5_clusters, dataset_seas_mean, fig_size, name
     # Aggiungo la legenda al plot
     fig.legend(handles=[green_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)  
     # Barra del colore
-    fig.colorbar(plot_mod, ax=ax.ravel().tolist(), orientation='horizontal', shrink=0.6, aspect=40)    
+    fig.colorbar(plot_mod, ax=ax.ravel().tolist(), orientation='horizontal', shrink=0.6, aspect=40).set_label('Zonal wind(m/s)')    
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
@@ -468,15 +468,15 @@ def plot_5_std_cluster_atmos(list_5_clusters,name_dict,fig_size,v_min,v_max,titl
         #valori assi          
         ax[k,l].set_xticks(np.arange(std_dev[0].lon.min(),std_dev[0].lon.max(), 20))
         ax[k,l].set_yticks(np.arange(std_dev[0].lat.min(),std_dev[0].lat.max(), 10))  
-        ax[k,l].set_ylabel('latitude')
-        ax[k,l].set_xlabel('longitude')
+        ax[k,l].set_ylabel('latitude(deg)')
+        ax[k,l].set_xlabel('longitude(deg)')
         ax[k,l].coastlines() #gca = get current axis        
         ax[k,l].set_title(f'Cluster {j}', fontsize=16, y=1.02)
 
     ax[1,1].axis('off')
     ax[1,2].axis('off')
     # Barra del colore
-    fig.colorbar(plot_mod, ax=ax.ravel().tolist(), orientation='horizontal', shrink=0.6, aspect=40)
+    fig.colorbar(plot_mod, ax=ax.ravel().tolist(), orientation='horizontal', shrink=0.6, aspect=40).set_label('Zonal wind(m/s)')
     # Titolo 
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
@@ -642,8 +642,8 @@ def plot_5_mean_cluster_zonmean(list_5_clusters, dataset_seas_mean, fig_size, na
         data_era = dataset_seas_mean[4]
         contour_era = data_era.sel(lon=0).plot.contour(ax=ax[k,l],colors='g')
         ax[k,l].clabel(contour_era, fmt='%1.1f')
-        ax[k,l].set_xlabel('latitude')
-        ax[k,l].set_ylabel('plev')
+        ax[k,l].set_xlabel('latitude(deg)')
+        ax[k,l].set_ylabel('plev(Pa)')
         ax[k,l].invert_yaxis()
         # Titolo
         ax[k,l].set_title(f'Cluster {j}', fontsize=16, y=1.02)
@@ -655,7 +655,7 @@ def plot_5_mean_cluster_zonmean(list_5_clusters, dataset_seas_mean, fig_size, na
     # Aggiungo la legenda al plot
     fig.legend(handles=[green_line],loc='upper right', bbox_to_anchor=(1.02, 1), ncol=1)
     # Barra del colore
-    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)          
+    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40).set_label('Zonal wind(m/s)')         
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
@@ -678,15 +678,15 @@ def plot_5_std_cluster_zonmean(list_5_clusters,name_dict,fig_size,v_min,v_max,ti
             k = 1 #indice per le righe --> seconda riga
             l = k*j - 3  #indice per le colonne --> l appartiene [0,1]
         plot_mod = std_dev.plot(ax=ax[k,l],cmap='Reds',vmin=v_min,vmax=v_max, add_colorbar=False)  
-        ax[k,l].set_ylabel('plev')
-        ax[k,l].set_xlabel('latitude')
+        ax[k,l].set_ylabel('plev(Pa)')
+        ax[k,l].set_xlabel('latitude(deg)')
         ax[k,l].invert_yaxis()      
         ax[k,l].set_title(f'Cluster {j}', fontsize=16, y=1.02)
 
     ax[1,1].axis('off')
     ax[1,2].axis('off')
     # Barra del colore
-    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40)   
+    fig.colorbar(plot_mod, ax=ax, orientation='horizontal', shrink=0.6, aspect=40).set_label('Zonal wind(m/s)')   
     # Titolo
     fig.suptitle(title_plot, fontsize=16, y=1.02)
     fig.savefig(title_pdf, format='pdf')
