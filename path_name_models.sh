@@ -4,8 +4,6 @@ maindir=/archive/paolo/cmip6/CMIP6/model-output
 
 models=$(ls -d $maindir/*/*)
 
-#echo $models
-
 modeloutput=/work/users/guest/sbeltrami/tos
 
 #per assicurarmi che i file siano vuoti all'inizio
@@ -24,8 +22,8 @@ for modelpath in $models ; do
 
         #echo $(ls $model)
         #Non prendo4 modelli
-        if [ "$model" == "CIESM" ] || [ "$model" == "FGOALS-f3-L" ] || [ "$model" == "GFDL-CM4" ] || [ "$model" == "E3SM-1-1" ] || [ "$model" == "E3SM-1-1-ECA" ] || [ "$model" == "NorCPM1" ]; then # CIESM per Value Error index must be monotonic increasing or decreasing, FGOALS per stesso valore medio di temperatura pari a 3.1070e+34
-            echo 'CIESM, FGOALS-f3-L, GFDL-CM4, E3SM-1-1, E3SM-1-1-ECA, NorCMP1 models not taken'
+        if [ "$model" == "CIESM" ] || [ "$model" == "FGOALS-f3-L" ] || [ "$model" == "GFDL-CM4" ] || [ "$model" == "E3SM-1-1" ] || [ "$model" == "E3SM-1-1-ECA" ] || [ "$model" == "NorCPM1" ] || [ "$model" == "INM-CM4-8" ] || [ "$model" == "INM-CM5-0" ]; then # CIESM per Value Error index must be monotonic increasing or decreasing, FGOALS per stesso valore medio di temperatura pari a 3.1070e+34
+            echo 'CIESM, FGOALS-f3-L, GFDL-CM4, E3SM-1-1, E3SM-1-1-ECA, NorCMP1, INM-CM4-8, INM-CM5-0 models not taken'
         
         else
             printf "%s\n" $model >> name_model.txt #stampo il nome del modello su file
@@ -40,7 +38,6 @@ for modelpath in $models ; do
                 #remapbil
                 cdo remapbil,r180x90 -selname,tos ${modeloutput}/${model}.nc ${modeloutput}/${model}_remapbil.nc
                 #scrivo su file il nome e il percorso
-                ù
                 printf "%s\n" ${modeloutput}/${model}_remapbil.nc  >> path_remap_ocean_model.txt
                 printf "%s\n" $model >> remapbil_model.txt #scrivo su file il nome .nc
 
